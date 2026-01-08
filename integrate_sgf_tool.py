@@ -24,7 +24,7 @@ while leaf.num_children > 0:
     leaf = leaf.get_child(0)
 
 # print the current board state
-print(to_board_string(leaf))
+# print(to_board_string(leaf))
 
 # dispatch leaf node to NCTU6
 print("Calling NCTU6 with the arguments:")

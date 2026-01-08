@@ -1,4 +1,6 @@
 import typing
+import math
+import random
 import sgf_tool
 from .solver_node import SolverNode, SolverNodeAllocator
 from .types import BoardState, EvaluationResult
@@ -44,22 +46,25 @@ class Tree:
         if node.num_children == 0:
             return
 
-        # Determine turn based on children's moves
-        # If children have 'B' property, it means it was Black's turn at 'node'
-        # If children have 'W' property, it means it was White's turn at 'node'
-        first_child = node.child
-        if not first_child:
-            return
+        # # Determine turn based on children's moves
+        # # If children have 'B' property, it means it was Black's turn at 'node'
+        # # If children have 'W' property, it means it was White's turn at 'node'
+        # first_child = node.child
+        # if not first_child:
+        #     return
 
-        is_black_turn = False
-        if "B" in first_child:
-            is_black_turn = True
-        elif "W" in first_child:
-            is_black_turn = False
-        else:
-            # Should not happen in valid game tree
-            return
+        # is_black_turn = False
+        # if "B" in first_child:
+        #     is_black_turn = True
+        # elif "W" in first_child:
+        #     is_black_turn = False
+        # else:
+        #     # Should not happen in valid game tree
+        #     return
 
+        ###
+
+        
         children = list(node.get_children_iter())
 
         if is_black_turn:
@@ -84,6 +89,23 @@ class MCTS(Tree):
 
     def __init__(self):
         super().__init__()
+        self.c = 1.41421356237
 
     def selection(self):
-        pass
+        xd = self.root
+        while xd.num_children > 0:
+            np = xd.visit_count 
+            ch = xd.child 
+            id = 0
+            mxid = -1
+            mxval = -1e18
+            while ch:
+                nowscore = ch.winrate / ch.visit_count + self.c * math.sqrt(math.log(np) / ch.visit_count)
+                if nowscore > mxval:
+                    mxval = nowscore
+                    mxid = id
+                ch = ch.next_sibling
+                id += 1
+            xd = xd.get_child(mxid)
+        
+        return xd
