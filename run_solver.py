@@ -76,8 +76,8 @@ def main():
         print("\n" + "=" * 40)
         best_move_str = node_to_move_string(best_child)
         print(f"Best Move: {best_move_str} with {max_visits} visits.")
-        print("Board State after Best Move:")
-        print(to_board_string(best_child))
+        # print("Board State after Best Move:")
+        # print(to_board_string(best_child))
     else:
         print("\nNo valid moves found.")
 

@@ -53,16 +53,20 @@ class Tree:
             if current.child:
                 if turn == 1:
                     children = current.child
-                    for child in children:
-                        if child.status == BoardState.BLACK_WIN:
+                    while children:
+                        if children.status == BoardState.BLACK_WIN:
                             current.status = BoardState.BLACK_WIN
+                            break
+                        children = children.next_sibling
                 else:
                     children = current.child
-                    for child in children:
-                        if child.status == BoardState.WHITE_WIN:
+                    while children:
+                        if children.status == BoardState.WHITE_WIN:
                             current.status = BoardState.WHITE_WIN
+                            break
+                        children = children.next_sibling
 
-
+            turn *= -1
             result.score = -result.score
             current = current.parent
 
