@@ -2,6 +2,7 @@ import typing
 from .engine import NCTU6Engine
 from .tree import MCTS
 from .types import BoardState, EvaluationResult
+from .utils import node_to_move_string
 
 class Solver:
 
@@ -44,7 +45,10 @@ class Solver:
             result = self.engine.evaluate(leaf)
             par = leaf.parent
             if par:
-                ignore_str = self.tree.collect_child_moves(par)
+                # ignore_str = self.tree.collect_child_moves(par).to_sgf(root=NULL)
+                ignore_nodes = self.tree.collect_child_moves(par)
+                ignore_parts = [node_to_move_string(n) for n in ignore_nodes]
+                ignore_str = ";" + ";".join(ignore_parts)
                 result2 = self.engine.evaluate(par, ignore=ignore_str)
                 self.tree.expand(par, result2)
                 self.tree.backpropagate(par, result2)

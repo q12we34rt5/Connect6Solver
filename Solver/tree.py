@@ -44,15 +44,25 @@ class Tree:
     def backpropagate(self, node: SolverNode, result: EvaluationResult):
         current = node
 
+        turn = 1
+        if "W" in node:
+            turn = -1
         while current:
             current.visit_count += 1
             current.winrate += result.score
             if current.child:
-                if current.get_child(0).status == BoardState.BLACK_WIN:
-                    current.status = BoardState.BLACK_WIN
-                if current.get_child(0).status == BoardState.WHITE_WIN:
-                    current.status = BoardState.WHITE_WIN
-                
+                if turn == 1:
+                    children = current.child
+                    for child in children:
+                        if child.status == BoardState.BLACK_WIN:
+                            current.status = BoardState.BLACK_WIN
+                else:
+                    children = current.child
+                    for child in children:
+                        if child.status == BoardState.WHITE_WIN:
+                            current.status = BoardState.WHITE_WIN
+
+
             result.score = -result.score
             current = current.parent
 
@@ -72,7 +82,11 @@ class MCTS(Tree):
             mxid = -1
             mxval = -1e18
             while ch:
-                nowscore = ch.winrate / ch.visit_count + self.c * math.sqrt(math.log(np) / ch.visit_count)
+                if ch.visit_count == 0:
+                    nowscore = 1e18
+                else:
+                    nowscore = ch.winrate / ch.visit_count + self.c * math.sqrt(math.log(np) / ch.visit_count)
+                
                 if nowscore > mxval:
                     mxval = nowscore
                     mxid = id
