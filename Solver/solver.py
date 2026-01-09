@@ -42,6 +42,13 @@ class Solver:
 
             # 2. Evaluation
             result = self.engine.evaluate(leaf)
+            par = leaf.parent
+            if par:
+                ignore_str = self.tree.collect_child_moves(par)
+                result2 = self.engine.evaluate(par, ignore=ignore_str)
+                self.tree.expand(par, result2)
+                self.tree.backpropagate(par, result2)
+
             # 3. Expansion
             self.tree.expand(leaf, result)
             # 4. Backpropagation

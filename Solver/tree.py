@@ -16,8 +16,13 @@ class Tree:
         self.root = sgf_tool.SGFParser(
             node_allocator=self.node_allocator).parse(sgf)
 
-    def selection(self):
-        pass
+    def collect_child_moves(self, node: SolverNode):
+        child = node.child
+        all_moves = []  
+        while child:
+            all_moves.append(child)
+            child = child.next_sibling
+        return all_moves
 
     def expand(self, node: SolverNode, result: EvaluationResult):
         if result.state == BoardState.BLACK_WIN:
