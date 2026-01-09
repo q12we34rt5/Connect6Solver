@@ -41,53 +41,20 @@ class Tree:
             for move in moves:
                 node.add_child(move)
 
-    def backpropagate(self, node: SolverNode):
+    def backpropagate(self, node: SolverNode, result: EvaluationResult):
         current = node
+
         while current:
-            self.update_node_status(current)
+            current.visit_count += 1
+            current.winrate += result.score
+            if current.child:
+                if current.get_child(0).status == BoardState.BLACK_WIN:
+                    current.status = BoardState.BLACK_WIN
+                if current.get_child(0).status == BoardState.WHITE_WIN:
+                    current.status = BoardState.WHITE_WIN
+                
+            result.score = -result.score
             current = current.parent
-
-    def update_node_status(self, node: SolverNode):
-        if node.num_children == 0:
-            return
-
-        # # Determine turn based on children's moves
-        # # If children have 'B' property, it means it was Black's turn at 'node'
-        # # If children have 'W' property, it means it was White's turn at 'node'
-        # first_child = node.child
-        # if not first_child:
-        #     return
-
-        # is_black_turn = False
-        # if "B" in first_child:
-        #     is_black_turn = True
-        # elif "W" in first_child:
-        #     is_black_turn = False
-        # else:
-        #     # Should not happen in valid game tree
-        #     return
-
-        ###
-
-        
-        children = list(node.get_children_iter())
-
-        if is_black_turn:
-            # Black's turn:
-            # Black wins if there exists a move leading to Black win (OR)
-            # White wins if ALL moves lead to White win (AND)
-            if any(child.status == BoardState.BLACK_WIN for child in children):
-                node.status = BoardState.BLACK_WIN
-            elif all(child.status == BoardState.WHITE_WIN for child in children):
-                node.status = BoardState.WHITE_WIN
-        else:
-            # White's turn:
-            # White wins if there exists a move leading to White win (OR)
-            # Black wins if ALL moves lead to Black win (AND)
-            if any(child.status == BoardState.WHITE_WIN for child in children):
-                node.status = BoardState.WHITE_WIN
-            elif all(child.status == BoardState.BLACK_WIN for child in children):
-                node.status = BoardState.BLACK_WIN
 
 
 class MCTS(Tree):
