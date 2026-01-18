@@ -8,13 +8,33 @@ from Solver.solver import Solver
 from Solver.types import BoardState
 from Solver.utils import node_to_move_string, to_board_string
 
+def dfs(node, dep):
+    print(f"we are children, and our dep:{dep}")
+
+    while node:
+        move_str = node_to_move_string(node)
+        move_str2 = node_to_move_string(node.get_child(0))
+        avg_score = node.winrate / node.visit_count if node.visit_count > 0 else 0
+        
+        print(f"Move: {move_str}{move_str2} | Visits: {node.visit_count:<5} | Score: {avg_score:>.2f} | Status: {node.status}")
+        hehe = node.child.child
+        if not hehe:
+            node = node.next_sibling
+            continue
+        dfs(hehe, dep + 1)
+        node = node.next_sibling 
+
+    print("go up to parent")
+
+
+
 def main():
     # Example SGF: 
     # Black places one stone at JJ.
     # White places two stones at IH, HI.
     # Black places two stones at KK, LJ.
     # Now it is White's turn to move.
-    input_sgf = "(;B[JJ];W[IH];W[HI];B[KK];B[LJ])"
+    input_sgf = "(;B[JJ];W[HL];W[IH];B[LJ];B[KK])"
     
     print(f"Initializing solver with job: {input_sgf}")
     
@@ -22,8 +42,7 @@ def main():
     solver.set_job(input_sgf)
     
     # Run simulations
-    # You can increase this number for better results
-    simulations = 100
+    simulations = 15
     print(f"Running {simulations} simulations...")
     solver.solve(simulations=simulations)
     
@@ -40,46 +59,11 @@ def main():
     
     # Traverse to the end of the input SGF to see next move predictions
     # Count moves in SGF (simple heuristic: count ';')
-    input_moves_count = input_sgf.count(";")
-    print(f"\nTraversing {input_moves_count} steps to reach the end of input sequence...")
     
     current = root
     # Follow the main line (first child) which corresponds to the initial SGF sequence
-    for i in range(input_moves_count):
-        if current.num_children > 0:
-            current = current.get_child(0)
-        else:
-            print(f"Stopped early at depth {i}")
-            break
-            
-    print(f"Current Board State (at leaf):")
-    # print(to_board_string(current)) # Optional: print board at leaf
-
-    print("\nCandidate Moves (Children of Leaf):")
-    child = root.get_child(0)
-    best_child = None
-    max_visits = -1
-
-    while child:
-        move_str = node_to_move_string(child)
-        avg_score = child.winrate / child.visit_count if child.visit_count > 0 else 0
-        
-        print(f"Move: {move_str:<10} | Visits: {child.visit_count:<5} | Score: {avg_score:>.2f} | Status: {child.status}")
-        
-        if child.visit_count > max_visits:
-            max_visits = child.visit_count
-            best_child = child
-            
-        child = child.next_sibling
-
-    if best_child:
-        print("\n" + "=" * 40)
-        best_move_str = node_to_move_string(best_child)
-        print(f"Best Move: {best_move_str} with {max_visits} visits.")
-        # print("Board State after Best Move:")
-        # print(to_board_string(best_child))
-    else:
-        print("\nNo valid moves found.")
+    
+    dfs(root.get_child(0), 1)
 
 if __name__ == "__main__":
     main()

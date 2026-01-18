@@ -31,9 +31,9 @@ class NCTU6Engine(Engine):
                 pass
 
         state = BoardState.UNKNOWN
-        if score == 1.0:
+        if score > 0.95:
             state = BoardState.BLACK_WIN
-        elif score == -1.0:
+        elif score < -0.95:
             state = BoardState.WHITE_WIN
 
         return EvaluationResult(
@@ -46,7 +46,7 @@ class NCTU6Engine(Engine):
 
     def evaluate(self, node: SolverNode, **kwargs) -> EvaluationResult:
         from .utils import execute_nctu6, node_to_job
-
+        # print(f'{self.executable_path} node:{node_to_job(node)}')
         job = node_to_job(node)
         args = ["-playtsumego", job]
 

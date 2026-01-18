@@ -24,40 +24,45 @@ class Solver:
         if not self.tree.root:
             raise ValueError("No job set. Call set_job() first.")
 
+        check_node = self.tree.root
         for i in range(simulations):
+            print(f"Simulation {i+1}/{simulations}")
             # 1. Selection (done)
             leaf = self.tree.selection() 
-            
-            # If leaf is terminal (already solved), we treat it as a result
-            if leaf.status != BoardState.UNKNOWN:
-                score = 1.0 if leaf.status == BoardState.BLACK_WIN else -1.0
-                result = EvaluationResult(
-                    moves=None,
-                    score=score,
-                    state=leaf.status,
-                    info={"comment": "Terminal node revisit"},
-                    raw=""
-                )
-                self.tree.backpropagate(leaf, result)
-                continue
-
+            # print(node_to_move_string(leaf), i)
+            if i == 0:
+                check_node = leaf.parent
             # 2. Evaluation
-            result = self.engine.evaluate(leaf)
-            par = leaf.parent
-            if par:
-                # ignore_str = self.tree.collect_child_moves(par).to_sgf(root=NULL)
-                ignore_nodes = self.tree.collect_child_moves(par)
-                ignore_parts = [node_to_move_string(n) for n in ignore_nodes]
-                ignore_str = ";" + ";".join(ignore_parts)
-                result2 = self.engine.evaluate(par, ignore=ignore_str)
+
+            ignore_nodes = self.tree.collect_child_moves(leaf)
+            ignore_parts = [node_to_move_string(n) for n in ignore_nodes]
+            ignore_str = ";" + ";".join(ignore_parts)
+            if leaf.num_children > 0:
+                result = self.engine.evaluate(leaf, ignore=ignore_str)
+            else:
+                result = self.engine.evaluate(leaf)
+            # print(result.state, node_to_move_string(result.moves))
+            par = (leaf.parent).parent
+            if par and i > 0:
+                ignore_nodes2 = self.tree.collect_child_moves(par)
+                ignore_parts2 = [node_to_move_string(n) for n in ignore_nodes2]
+                ignore_str2 = ";" + ";".join(ignore_parts2)
+                result2 = self.engine.evaluate(par, ignore=ignore_str2)
                 self.tree.expand(par, result2)
-                self.tree.backpropagate(par, result2)
+                par = par.get_child(par.num_children - 1)
+                par.status = result2.state
+
+                self.tree.backpropagate(par, result2.score)
 
             # 3. Expansion
             self.tree.expand(leaf, result)
+            leaf = leaf.get_child(leaf.num_children - 1)
+            leaf.status = result.state
             # 4. Backpropagation
-            self.tree.backpropagate(leaf, result)
+            self.tree.backpropagate(leaf, result.score)
             
+            # print(check_node.status, node_to_move_string(check_node))
+            # print(check_node.get_child(0).status, node_to_move_string(check_node.get_child(0)))
             # Check if root is solved
-            if self.tree.root.status != BoardState.UNKNOWN:
+            if check_node.status != BoardState.UNKNOWN:
                 break

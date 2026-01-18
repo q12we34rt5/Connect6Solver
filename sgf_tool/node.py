@@ -2,7 +2,6 @@ import abc
 from collections import OrderedDict
 import typing
 
-
 class BaseSGFNode(abc.ABC):
     @abc.abstractmethod
     def __setitem__(self, key, value) -> None:
