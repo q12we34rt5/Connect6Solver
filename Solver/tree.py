@@ -26,7 +26,7 @@ class Tree:
             child = child.next_sibling
         return all_moves
 
-    def expand(self, node: SolverNode, result: EvaluationResult):
+    def expand(self, node: SolverNode, result: EvaluationResult, id: int):
         if result.state == BoardState.BLACK_WIN:
             node.status = BoardState.BLACK_WIN
         elif result.state == BoardState.WHITE_WIN:
@@ -43,6 +43,7 @@ class Tree:
                 ptr = ptr.next_sibling
 
             for move in moves:
+                move.id = id
                 node.add_child(move)
 
     def backpropagate(self, node: SolverNode, score):
@@ -55,38 +56,22 @@ class Tree:
             if current.child:
                 if "W" in current:
                     children = current.child.child
-                    win_count = 0
                     while children:
                         # print(f'children {node_to_move_string(children)}')
                         if children.status == BoardState.BLACK_WIN:
                             current.status = BoardState.BLACK_WIN
                             break
-                        # elif children.status == BoardState.WHITE_WIN:
-                        #     win_count += 1
-                        # else:
-                        #     win_count = -1e18
                         children = children.next_sibling
-                    # if win_count >= 3:
-                    #     current.status = BoardState.WHITE_WIN
                 if "B" in current:
                     children = current.child.child
                     if current == self.root:
                         children = current.child
-                    win_count = 0
                     while children:
                         # print(f'children {node_to_move_string(children)}')
                         if children.status == BoardState.WHITE_WIN:
                             current.status = BoardState.WHITE_WIN
                             break
-                        # elif children.status == BoardState.BLACK_WIN:
-                        #     win_count += 1
-                        # else:
-                        #     win_count = -1e18
                         children = children.next_sibling
-                    # if win_count >= 3:
-                    #     current.status = BoardState.BLACK_WIN
-                    # if win_count >= 1 and current == self.root:
-                    #     current.status = BoardState.BLACK_WIN
 
             if self.root == current.parent:
                 current = current.parent
@@ -106,7 +91,6 @@ class MCTS(Tree):
     def selection(self):
         # don't choose always win node
         now_node = self.root
-        first_choose = True
         while now_node.num_children > 0:
             parent_visit_count = now_node.visit_count 
             children = now_node.child 

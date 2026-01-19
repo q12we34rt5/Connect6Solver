@@ -30,8 +30,6 @@ class Solver:
             # 1. Selection (done)
             leaf = self.tree.selection() 
             # print(node_to_move_string(leaf), i)
-            if i == 0:
-                check_node = leaf.parent
             # 2. Evaluation
 
             ignore_nodes = self.tree.collect_child_moves(leaf)
@@ -48,21 +46,18 @@ class Solver:
                 ignore_parts2 = [node_to_move_string(n) for n in ignore_nodes2]
                 ignore_str2 = ";" + ";".join(ignore_parts2)
                 result2 = self.engine.evaluate(par, ignore=ignore_str2)
-                self.tree.expand(par, result2)
+                self.tree.expand(par, result2, i)
                 par = par.get_child(par.num_children - 1)
                 par.status = result2.state
-
                 self.tree.backpropagate(par, result2.score)
 
             # 3. Expansion
-            self.tree.expand(leaf, result)
+            self.tree.expand(leaf, result, i)
             leaf = leaf.get_child(leaf.num_children - 1)
             leaf.status = result.state
             # 4. Backpropagation
             self.tree.backpropagate(leaf, result.score)
             
-            # print(check_node.status, node_to_move_string(check_node))
-            # print(check_node.get_child(0).status, node_to_move_string(check_node.get_child(0)))
             # Check if root is solved
-            if check_node.status != BoardState.UNKNOWN:
+            if self.tree.root.status != BoardState.UNKNOWN:
                 break

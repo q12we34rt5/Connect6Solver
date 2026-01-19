@@ -38,7 +38,7 @@ def main():
     # White places two stones at IH, HI.
     # Black places two stones at KK, LJ.
     # Now it is White's turn to move.
-    input_sgf = "(;B[JJ];W[HL];W[IH];B[LJ];B[KK])"
+    input_sgf = "(;B[JJ];W[LH];W[HH];B[JI];B[KJ])"
     
     print(f"Initializing solver with job: {input_sgf}")
     
@@ -46,7 +46,7 @@ def main():
     solver.set_job(input_sgf)
     
     # Run simulations
-    simulations = 15
+    simulations = 2
     print(f"Running {simulations} simulations...")
     solver.solve(simulations=simulations)
     
@@ -62,13 +62,18 @@ def main():
     print("=" * 40)
     
     for node, _ in sgf_tool.utils.Algorithm.dfs_iterator(root):
+        winrate = node.winrate / node.visit_count if node.visit_count > 0 else 0
         node["C"] = [
-            f"winrate = {node.winrate / node.visit_count}\n"
+            f"winrate = {winrate:.2f}\n"
             f"visit_count = {node.visit_count}\n"
-            f"status = {node.status}"
+            f"status = {node.status}\n"
+            f"id = {node.id}\n"
         ]
 
-    print(root.to_sgf())
+    with open("result.sgf", "w") as f:
+        f.write(root.to_sgf())
+    print("SGF saved to result.sgf")
+
     # dfs(root.get_child(0), 1)
 
 if __name__ == "__main__":

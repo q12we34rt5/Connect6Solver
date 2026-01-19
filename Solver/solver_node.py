@@ -9,6 +9,7 @@ class SolverNode(sgf_tool.SGFNode):
         self.winrate: float = 0.0
         self.visit_count: int = 0
         self.status: BoardState = BoardState.UNKNOWN
+        self.id: int = 0
 
 
 class SolverNodeAllocator(sgf_tool.parser.NodeAllocator[SolverNode]):
