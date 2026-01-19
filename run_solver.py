@@ -1,5 +1,6 @@
 import sys
 import os
+import argparse
 
 # Ensure we can import from local directories
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -38,7 +39,14 @@ def main():
     # White places two stones at IH, HI.
     # Black places two stones at KK, LJ.
     # Now it is White's turn to move.
-    input_sgf = "(;B[JJ];W[LH];W[HH];B[JI];B[KJ])"
+    
+    parser = argparse.ArgumentParser(description="Connect6 Solver")
+    parser.add_argument("--sgf", type=str, default="(;B[JJ];W[LH];W[HH];B[JI];B[KJ])", help="Input SGF string")
+    parser.add_argument("--simulations", type=int, default=2, help="Number of simulations to run")
+    args = parser.parse_args()
+
+    input_sgf = args.sgf
+    simulations = args.simulations
     
     print(f"Initializing solver with job: {input_sgf}")
     
@@ -46,7 +54,6 @@ def main():
     solver.set_job(input_sgf)
     
     # Run simulations
-    simulations = 2
     print(f"Running {simulations} simulations...")
     solver.solve(simulations=simulations)
     
