@@ -13,6 +13,34 @@ class Solver:
     def set_job(self, job: str):
         self.tree.load_sgf(job)
         # set board state to solve
+
+    def expand_node(self, node, id: int):
+        # print(f'node {node}, parent {node.parent}, child {node.get_child(0)}')
+        ignore_nodes = self.tree.collect_child_moves(node)
+        ignore_parts = [node_to_move_string(n) for n in ignore_nodes]
+        ignore_str = ";" + ";".join(ignore_parts)
+        if node.num_children > 0:
+            result = self.engine.evaluate(node, ignore=ignore_str)
+        else:
+            result = self.engine.evaluate(node)
+        print(result.moves, result.score)
+        # print("======check again======")
+        # print(f'node {node}, parent {node.parent}, child {node.get_child(0)}')
+        # if node.num_children > 0:
+            # print(result.moves, result.moves.get_child(0))
+            # print(node.get_child(node.num_children - 1), node.get_child(node.num_children - 1).get_child(0))
+        if node.num_children > 0 and str(result.moves) == str(node.get_child(node.num_children - 1)) and str(result.moves.get_child(0)) == str(node.get_child(node.num_children - 1).get_child(0)):
+            # print(f'parent {node.parent}, node{node}, child {node.get_child(0)}')
+            node.parent.status = node.get_child(0).status
+            return 0
+
+        self.tree.expand(node, result, id)
+        node = node.get_child(node.num_children - 1)
+        node.status = result.state
+        # 4. Backpropagation
+        self.tree.backpropagate(node, result.score)
+        return 1
+        
         
     def solve(self, simulations: int = 100):
         # 1. tree select (MCTS)
@@ -23,41 +51,24 @@ class Solver:
 
         if not self.tree.root:
             raise ValueError("No job set. Call set_job() first.")
-
+        # print(self.tree.root, self.tree.root.parent)
         check_node = self.tree.root
-        for i in range(simulations):
+        i = 0
+        while i < simulations:
             print(f"Simulation {i+1}/{simulations}")
             # 1. Selection (done)
             leaf = self.tree.selection() 
+            print(leaf, leaf.parent)
+            if leaf.parent.id == 0 and i > 0:
+                break
             # print(node_to_move_string(leaf), i)
             # 2. Evaluation
-
-            ignore_nodes = self.tree.collect_child_moves(leaf)
-            ignore_parts = [node_to_move_string(n) for n in ignore_nodes]
-            ignore_str = ";" + ";".join(ignore_parts)
-            if leaf.num_children > 0:
-                result = self.engine.evaluate(leaf, ignore=ignore_str)
-            else:
-                result = self.engine.evaluate(leaf)
-            # print(result.state, node_to_move_string(result.moves))
+            # can't find another way to go
+            if self.expand_node(leaf, i + 1) == 0:
+                continue
             par = (leaf.parent).parent
             if par and i > 0:
-                ignore_nodes2 = self.tree.collect_child_moves(par)
-                ignore_parts2 = [node_to_move_string(n) for n in ignore_nodes2]
-                ignore_str2 = ";" + ";".join(ignore_parts2)
-                result2 = self.engine.evaluate(par, ignore=ignore_str2)
-                self.tree.expand(par, result2, i)
-                par = par.get_child(par.num_children - 1)
-                par.status = result2.state
-                self.tree.backpropagate(par, result2.score)
-
-            # 3. Expansion
-            self.tree.expand(leaf, result, i)
-            leaf = leaf.get_child(leaf.num_children - 1)
-            leaf.status = result.state
-            # 4. Backpropagation
-            self.tree.backpropagate(leaf, result.score)
-            
-            # Check if root is solved
+                self.expand_node(par, i + 1)
+            i += 1
             if self.tree.root.status != BoardState.UNKNOWN:
                 break

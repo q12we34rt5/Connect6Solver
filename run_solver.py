@@ -43,10 +43,12 @@ def main():
     parser = argparse.ArgumentParser(description="Connect6 Solver")
     parser.add_argument("--sgf", type=str, default="(;B[JJ];W[LH];W[HH];B[JI];B[KJ])", help="Input SGF string")
     parser.add_argument("--simulations", type=int, default=2, help="Number of simulations to run")
+    parser.add_argument("--output", type=str, default="result_2.sgf", help="Output SGF filename")
     args = parser.parse_args()
 
     input_sgf = args.sgf
     simulations = args.simulations
+    output_file = args.output
     
     print(f"Initializing solver with job: {input_sgf}")
     
@@ -77,9 +79,9 @@ def main():
             f"id = {node.id}\n"
         ]
 
-    with open("result.sgf", "w") as f:
+    with open(output_file, "w") as f:
         f.write(root.to_sgf())
-    print("SGF saved to result.sgf")
+    print(f"SGF saved to {output_file}")
 
     # dfs(root.get_child(0), 1)
 
