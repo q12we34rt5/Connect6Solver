@@ -61,13 +61,13 @@ class Tree:
                         if children.status == BoardState.BLACK_WIN:
                             current.status = BoardState.BLACK_WIN
                             break
-                        elif children.status == BoardState.WHITE_WIN:
-                            win_count += 1
-                        else:
-                            win_count = -1e18
+                        # elif children.status == BoardState.WHITE_WIN:
+                        #     win_count += 1
+                        # else:
+                        #     win_count = -1e18
                         children = children.next_sibling
-                    if win_count >= 3:
-                        current.status = BoardState.WHITE_WIN
+                    # if win_count >= 3:
+                    #     current.status = BoardState.WHITE_WIN
                 if "B" in current:
                     children = current.child.child
                     if current == self.root:
@@ -78,15 +78,15 @@ class Tree:
                         if children.status == BoardState.WHITE_WIN:
                             current.status = BoardState.WHITE_WIN
                             break
-                        elif children.status == BoardState.BLACK_WIN:
-                            win_count += 1
-                        else:
-                            win_count = -1e18
+                        # elif children.status == BoardState.BLACK_WIN:
+                        #     win_count += 1
+                        # else:
+                        #     win_count = -1e18
                         children = children.next_sibling
-                    if win_count >= 3:
-                        current.status = BoardState.BLACK_WIN
-                    if win_count >= 1 and current == self.root:
-                        current.status = BoardState.BLACK_WIN
+                    # if win_count >= 3:
+                    #     current.status = BoardState.BLACK_WIN
+                    # if win_count >= 1 and current == self.root:
+                    #     current.status = BoardState.BLACK_WIN
 
             if self.root == current.parent:
                 current = current.parent

@@ -7,6 +7,10 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from Solver.solver import Solver
 from Solver.types import BoardState
 from Solver.utils import node_to_move_string, to_board_string
+import sgf_tool
+from Solver.solver_node import SolverNode, SolverNodeAllocator
+
+
 
 def dfs(node, dep):
     print(f"we are children, and our dep:{dep}")
@@ -57,13 +61,15 @@ def main():
     print(f"Root Winrate (Accumulated): {root.winrate / root.visit_count}")
     print("=" * 40)
     
-    # Traverse to the end of the input SGF to see next move predictions
-    # Count moves in SGF (simple heuristic: count ';')
-    
-    current = root
-    # Follow the main line (first child) which corresponds to the initial SGF sequence
-    
-    dfs(root.get_child(0), 1)
+    for node, _ in sgf_tool.utils.Algorithm.dfs_iterator(root):
+        node["C"] = [
+            f"winrate = {node.winrate / node.visit_count}\n"
+            f"visit_count = {node.visit_count}\n"
+            f"status = {node.status}"
+        ]
+
+    print(root.to_sgf())
+    # dfs(root.get_child(0), 1)
 
 if __name__ == "__main__":
     main()
