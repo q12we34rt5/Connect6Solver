@@ -15,14 +15,8 @@ class Solver:
         # set board state to solve
 
     def expand_node(self, node, id: int):
-        print(node)
-        if node.id == 0:
+        if node.parent.id == 0:
             if node.child and node.child.id == 0:
-                print(f'{node} wtf are you here')
-                cc = node.child
-                while cc:
-                    print(f'{cc}, {cc.child}, {cc.status}')
-                    cc = cc.next_sibling
                 return 2
                 
         ignore_nodes = self.tree.collect_child_moves(node)
@@ -63,22 +57,7 @@ class Solver:
                 else:
                     node.parent.status = BoardState.UNKNOWN
 
-                # special case
-                if node.parent.id == 0 and node.parent.status != BoardState.UNKNOWN:
-                    nownode = node.parent
-                    if nownode.parent == self.tree.root:
-                        nownode = nownode.parent 
-                    else:
-                        nownode = nownode.parent.parent 
-                    while nownode:
-                        nownode.status = node.parent.status
-                        # print(nownode, nownode.status)
-                        if nownode == self.tree.root:
-                            break
-                        elif nownode.parent == self.tree.root:
-                            nownode = nownode.parent 
-                        else:
-                            nownode = nownode.parent.parent 
+                self.tree.update_state(node.parent) 
                 return 0
 
         self.tree.expand(node, result, id)
@@ -96,7 +75,6 @@ class Solver:
         # 3. expand tree
         # 4. backpropagate 
         # 5. solve or not?
-        
 
         check_node = self.tree.root
         simulation_step = 0
@@ -107,10 +85,15 @@ class Solver:
 
             leaf = self.tree.selection() 
             
-            expand_result = self.expand_node(leaf, simulation_step + 1) 
+            expand_result = self.expand_node(leaf, simulation_step + 1)
             if expand_result == 0:
+                gg = leaf.child
+                while gg:
+                    print(gg, gg.status, gg.child, gg.id)
+                    gg = gg.next_sibling
                 continue
             elif expand_result == 2:
+                print("It shouldn't happen")
                 break
             par = (leaf.parent).parent
             self.expand_node(par, simulation_step + 1)

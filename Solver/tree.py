@@ -86,6 +86,42 @@ class Tree:
 
             current = (current.parent).parent
 
+    def update_state(self, node: SolverNode):
+        # the node is the first move
+        current = node
+        
+        while True:
+            if current == self.root:
+                break
+            elif current.parent == self.root:
+                current = current.parent
+            else:
+                current = current.parent.parent
+
+            # let the state can be transfered to root
+            if current == self.root:
+                children = current.child
+                current.status = children.status
+            elif current.id == 0 and current.child.child.id == 0:
+                children = current.child.child
+                current.status = children.status
+            elif "W" in current:
+                children = current.child.child
+                while children:
+                    if children.status == BoardState.BLACK_WIN:
+                        current.status = BoardState.BLACK_WIN
+                        break
+                    children = children.next_sibling
+            elif "B" in current:
+                children = current.child.child
+                if current == self.root:
+                    children = current.child
+                while children:
+                    if children.status == BoardState.WHITE_WIN:
+                        current.status = BoardState.WHITE_WIN
+                        break
+                    children = children.next_sibling
+
 
 class MCTS(Tree):
 
