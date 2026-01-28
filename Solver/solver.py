@@ -15,7 +15,16 @@ class Solver:
         # set board state to solve
 
     def expand_node(self, node, id: int):
-        # print(f'node {node}, parent {node.parent}, child {node.get_child(0)}')
+        print(node)
+        if node.id == 0:
+            if node.child and node.child.id == 0:
+                print(f'{node} wtf are you here')
+                cc = node.child
+                while cc:
+                    print(f'{cc}, {cc.child}, {cc.status}')
+                    cc = cc.next_sibling
+                return 2
+                
         ignore_nodes = self.tree.collect_child_moves(node)
         ignore_parts = [node_to_move_string(n) for n in ignore_nodes]
         ignore_str = ";" + ";".join(ignore_parts)
@@ -23,16 +32,9 @@ class Solver:
             result = self.engine.evaluate(node, ignore=ignore_str)
         else:
             result = self.engine.evaluate(node)
-        print(result.moves, result.score)
-        # print("======check again======")
-        # print(f'node {node}, parent {node.parent}, child {node.get_child(0)}')
-        # if node.num_children > 0:
-            # print(result.moves, result.moves.get_child(0))
-            # print(node.get_child(node.num_children - 1), node.get_child(node.num_children - 1).get_child(0))
         
+        #to check whether the move is the same as the last move
         if node.num_children > 0:
-
-            #to check whether the move is the same as the last move
             same = False
             node_children = node.get_child(0)
             while node_children:
@@ -40,8 +42,8 @@ class Solver:
                     same = True
                     break
                 node_children = node_children.next_sibling
+            #check all children are black win or white win
             if same:
-                #check all children are black win or white win
                 w_win = 1
                 b_win = 1
                 node_children = node.get_child(0)
@@ -60,12 +62,30 @@ class Solver:
                     node.parent.status = BoardState.BLACK_WIN
                 else:
                     node.parent.status = BoardState.UNKNOWN
+
+                # special case
+                if node.parent.id == 0 and node.parent.status != BoardState.UNKNOWN:
+                    nownode = node.parent
+                    if nownode.parent == self.tree.root:
+                        nownode = nownode.parent 
+                    else:
+                        nownode = nownode.parent.parent 
+                    while nownode:
+                        nownode.status = node.parent.status
+                        # print(nownode, nownode.status)
+                        if nownode == self.tree.root:
+                            break
+                        elif nownode.parent == self.tree.root:
+                            nownode = nownode.parent 
+                        else:
+                            nownode = nownode.parent.parent 
                 return 0
 
         self.tree.expand(node, result, id)
         node = node.get_child(node.num_children - 1)
         node.status = result.state
-        # 4. Backpropagation
+        
+
         self.tree.backpropagate(node, result.score)
         return 1
         
@@ -76,27 +96,22 @@ class Solver:
         # 3. expand tree
         # 4. backpropagate 
         # 5. solve or not?
+        
 
-        if not self.tree.root:
-            raise ValueError("No job set. Call set_job() first.")
-        # print(self.tree.root, self.tree.root.parent)
         check_node = self.tree.root
         simulation_step = 0
         while simulation_step < simulations:
-            print(f"Simulation {simulation_step+1}/{simulations}")
-            # 1. Selection (done)
-            leaf = self.tree.selection() 
-            print(leaf, leaf.parent)
-            if leaf.parent.id == 0 and simulation_step > 0:
-                break
-            # print(node_to_move_string(leaf), simulations)
-            # 2. Evaluation
-            # can't find another way to go
-            if self.expand_node(leaf, simulation_step + 1) == 0:
-                continue
-            par = (leaf.parent).parent
-            if par and simulation_step > 0:
-                self.expand_node(par, simulation_step + 1)
-            simulation_step += 1
             if self.tree.root.status != BoardState.UNKNOWN:
                 break
+            print(f"Simulation {simulation_step+1}/{simulations}")
+
+            leaf = self.tree.selection() 
+            
+            expand_result = self.expand_node(leaf, simulation_step + 1) 
+            if expand_result == 0:
+                continue
+            elif expand_result == 2:
+                break
+            par = (leaf.parent).parent
+            self.expand_node(par, simulation_step + 1)
+            simulation_step += 1

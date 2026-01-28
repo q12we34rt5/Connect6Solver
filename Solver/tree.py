@@ -47,37 +47,42 @@ class Tree:
                 node.add_child(move)
 
     def backpropagate(self, node: SolverNode, score):
+        # the node is the first move
         current = node
-        # print("hello\n")
+        
         while True:
-            # print(current.status, node_to_move_string(current))
             current.visit_count += 1
             current.winrate += score
             if current.child:
-                if "W" in current:
+                # let the state can be transfered to root
+                if current == self.root:
+                    children = current.child
+                    current.status = children.status
+                elif current.id == 0 and current.child.child.id == 0:
+                    children = current.child.child
+                    current.status = children.status
+                elif "W" in current:
                     children = current.child.child
                     while children:
-                        # print(f'children {node_to_move_string(children)}')
                         if children.status == BoardState.BLACK_WIN:
                             current.status = BoardState.BLACK_WIN
                             break
                         children = children.next_sibling
-                if "B" in current:
+                elif "B" in current:
                     children = current.child.child
                     if current == self.root:
                         children = current.child
                     while children:
-                        # print(f'children {node_to_move_string(children)}')
                         if children.status == BoardState.WHITE_WIN:
                             current.status = BoardState.WHITE_WIN
                             break
                         children = children.next_sibling
 
+            if current == self.root:
+                break
             if self.root == current.parent:
                 current = current.parent
                 continue 
-            elif current == self.root:
-                break
 
             current = (current.parent).parent
 
@@ -89,7 +94,6 @@ class MCTS(Tree):
         self.c = math.sqrt(2)
 
     def selection(self):
-        # don't choose always win node
         now_node = self.root
         while now_node.num_children > 0:
             parent_visit_count = now_node.visit_count 
@@ -99,6 +103,7 @@ class MCTS(Tree):
             max_child_value = -1e18
             
             while children:
+                # don't choose always win node
                 if children.status != BoardState.UNKNOWN:
                     children = children.next_sibling
                     index += 1
@@ -119,6 +124,7 @@ class MCTS(Tree):
                 children = children.next_sibling
                 index += 1
             
+            # all the children are determined
             if max_child_id == -1:
                 break
             now_node = now_node.get_child(max_child_id)
