@@ -29,10 +29,38 @@ class Solver:
         # if node.num_children > 0:
             # print(result.moves, result.moves.get_child(0))
             # print(node.get_child(node.num_children - 1), node.get_child(node.num_children - 1).get_child(0))
-        if node.num_children > 0 and str(result.moves) == str(node.get_child(node.num_children - 1)) and str(result.moves.get_child(0)) == str(node.get_child(node.num_children - 1).get_child(0)):
-            # print(f'parent {node.parent}, node{node}, child {node.get_child(0)}')
-            node.parent.status = node.get_child(0).status
-            return 0
+        
+        if node.num_children > 0:
+
+            #to check whether the move is the same as the last move
+            same = False
+            node_children = node.get_child(0)
+            while node_children:
+                if str(result.moves) == str(node_children) and str(result.moves.get_child(0)) == str(node_children.get_child(0)):
+                    same = True
+                    break
+                node_children = node_children.next_sibling
+            if same:
+                #check all children are black win or white win
+                w_win = 1
+                b_win = 1
+                node_children = node.get_child(0)
+                while node_children:
+                    if node_children.status == BoardState.WHITE_WIN:
+                        b_win = 0
+                    elif node_children.status == BoardState.BLACK_WIN:
+                        w_win = 0
+                    else:
+                        b_win = 0
+                        w_win = 0
+                    node_children = node_children.next_sibling
+                if w_win == 1:
+                    node.parent.status = BoardState.WHITE_WIN
+                elif b_win == 1:
+                    node.parent.status = BoardState.BLACK_WIN
+                else:
+                    node.parent.status = BoardState.UNKNOWN
+                return 0
 
         self.tree.expand(node, result, id)
         node = node.get_child(node.num_children - 1)
@@ -53,22 +81,22 @@ class Solver:
             raise ValueError("No job set. Call set_job() first.")
         # print(self.tree.root, self.tree.root.parent)
         check_node = self.tree.root
-        i = 0
-        while i < simulations:
-            print(f"Simulation {i+1}/{simulations}")
+        simulation_step = 0
+        while simulation_step < simulations:
+            print(f"Simulation {simulation_step+1}/{simulations}")
             # 1. Selection (done)
             leaf = self.tree.selection() 
             print(leaf, leaf.parent)
-            if leaf.parent.id == 0 and i > 0:
+            if leaf.parent.id == 0 and simulation_step > 0:
                 break
-            # print(node_to_move_string(leaf), i)
+            # print(node_to_move_string(leaf), simulations)
             # 2. Evaluation
             # can't find another way to go
-            if self.expand_node(leaf, i + 1) == 0:
+            if self.expand_node(leaf, simulation_step + 1) == 0:
                 continue
             par = (leaf.parent).parent
-            if par and i > 0:
-                self.expand_node(par, i + 1)
-            i += 1
+            if par and simulation_step > 0:
+                self.expand_node(par, simulation_step + 1)
+            simulation_step += 1
             if self.tree.root.status != BoardState.UNKNOWN:
                 break
