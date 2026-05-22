@@ -21,31 +21,14 @@ class Tree:
         child = node.child
         all_moves = []  
         while child:
-            # all_moves.append(child)
-            # all_moves.append(child.get_child(0))
             all_moves.append([child, child.get_child(0)])
             child = child.next_sibling
         return all_moves
 
-    def expand(self, node: SolverNode, result: EvaluationResult, id: int):
-        if result.state == BoardState.BLACK_WIN:
-            node.status = BoardState.BLACK_WIN
-        elif result.state == BoardState.WHITE_WIN:
-            node.status = BoardState.WHITE_WIN
-
+    def tree_expand(self, node: SolverNode, result: EvaluationResult, id: int):
         if result.moves:
-            # print(f'checkmove{node_to_move_string(result.moves)}')
-            # print(f'checkmove{node_to_move_string(result.moves.get_child(0))}')
-            # Collect all siblings from the result.moves
-            moves = []
-            ptr = result.moves
-            while ptr:
-                moves.append(ptr)
-                ptr = ptr.next_sibling
-
-            for move in moves:
-                move.id = id
-                node.add_child(move)
+            result.moves.id = id
+            node.add_child(result.moves)
     
     def any_child_BW(current):
         children = current.child.child
@@ -78,6 +61,24 @@ class Tree:
         
         return True
 
+    def update_state(self, node: SolverNode):
+        # the node is the first move
+        current = node
+        if current == self.root:
+            current.status = current.child.status
+        elif current.id == 0 and current.child.child.id == 0:
+            current.status = current.child.child.status
+        elif "W" in current:
+            if Tree.any_child_BW(current):
+                current.status = BoardState.BLACK_WIN
+            if Tree.all_child_W(current):
+                current.status = current.child.child.status
+        elif "B" in current:
+            if Tree.any_child_WW(current):
+                current.status = BoardState.WHITE_WIN
+            if Tree.all_child_W(current):
+                current.status = current.child.child.status
+
     def backpropagate(self, node: SolverNode, score):
         # the node is the first move
         current = node
@@ -86,24 +87,7 @@ class Tree:
             current.visit_count += 1
             current.winrate += score
             if current.child:
-                # let the state can be transfered to root
-                if current == self.root:
-                    children = current.child
-                    current.status = children.status
-                elif current.id == 0 and current.child.child.id == 0:
-                    children = current.child.child
-                    current.status = children.status
-                elif "W" in current:
-                    if Tree.any_child_BW(current):
-                        current.status = BoardState.BLACK_WIN
-                    if Tree.all_child_W(current):
-                        current.status = current.child.child.status
-                elif "B" in current:
-                    if Tree.any_child_WW(current):
-                        current.status = BoardState.WHITE_WIN
-                    if Tree.all_child_W(current):
-                        current.status = current.child.child.status
-                    
+                self.update_state(current)
 
             if current == self.root:
                 break
@@ -112,32 +96,6 @@ class Tree:
                 continue 
 
             current = (current.parent).parent
-
-    def update_state(self, node: SolverNode):
-        # the node is the first move
-        current = node
-        
-        while True:
-            if current == self.root:
-                break
-            elif current.parent == self.root:
-                current = current.parent
-            else:
-                current = current.parent.parent
-
-            # let the state can be transfered to root
-            if current == self.root:
-                children = current.child
-                current.status = children.status
-            elif current.id == 0 and current.child.child.id == 0:
-                children = current.child.child
-                current.status = children.status
-            elif "W" in current:
-                if Tree.any_child_BW(current):
-                    current.status = BoardState.BLACK_WIN
-            elif "B" in current:
-                if Tree.any_child_WW(current):
-                    current.status = BoardState.WHITE_WIN
 
 
 class MCTS(Tree):
