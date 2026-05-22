@@ -133,10 +133,10 @@ class Tree:
                 children = current.child.child
                 current.status = children.status
             elif "W" in current:
-                if Tree.any_child_BW:
+                if Tree.any_child_BW(current):
                     current.status = BoardState.BLACK_WIN
             elif "B" in current:
-                if Tree.any_child_WW:
+                if Tree.any_child_WW(current):
                     current.status = BoardState.WHITE_WIN
 
 
