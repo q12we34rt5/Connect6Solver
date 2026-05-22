@@ -21,8 +21,9 @@ class Tree:
         child = node.child
         all_moves = []  
         while child:
-            all_moves.append(child)
-            all_moves.append(child.get_child(0))
+            # all_moves.append(child)
+            # all_moves.append(child.get_child(0))
+            all_moves.append([child, child.get_child(0)])
             child = child.next_sibling
         return all_moves
 
@@ -45,6 +46,37 @@ class Tree:
             for move in moves:
                 move.id = id
                 node.add_child(move)
+    
+    def any_child_BW(current):
+        children = current.child.child
+        while children:
+            if children.status == BoardState.BLACK_WIN:
+                return True
+            children = children.next_sibling
+        
+        return False
+    
+    def any_child_WW(current):
+        children = current.child.child
+        while children:
+            if children.status == BoardState.WHITE_WIN:
+                return True
+            children = children.next_sibling
+        
+        return False
+    
+    
+    def all_child_W(current):
+        if current.child.num_children == 0:
+            return False
+        
+        children = current.child.child
+        while children:
+            if children.status != BoardState.WHITE_WIN and children.status != BoardState.BLACK_WIN:
+                return False 
+            children = children.next_sibling
+        
+        return True
 
     def backpropagate(self, node: SolverNode, score):
         # the node is the first move
@@ -62,21 +94,16 @@ class Tree:
                     children = current.child.child
                     current.status = children.status
                 elif "W" in current:
-                    children = current.child.child
-                    while children:
-                        if children.status == BoardState.BLACK_WIN:
-                            current.status = BoardState.BLACK_WIN
-                            break
-                        children = children.next_sibling
+                    if Tree.any_child_BW(current):
+                        current.status = BoardState.BLACK_WIN
+                    if Tree.all_child_W(current):
+                        current.status = current.child.child.status
                 elif "B" in current:
-                    children = current.child.child
-                    if current == self.root:
-                        children = current.child
-                    while children:
-                        if children.status == BoardState.WHITE_WIN:
-                            current.status = BoardState.WHITE_WIN
-                            break
-                        children = children.next_sibling
+                    if Tree.any_child_WW(current):
+                        current.status = BoardState.WHITE_WIN
+                    if Tree.all_child_W(current):
+                        current.status = current.child.child.status
+                    
 
             if current == self.root:
                 break
@@ -106,21 +133,11 @@ class Tree:
                 children = current.child.child
                 current.status = children.status
             elif "W" in current:
-                children = current.child.child
-                while children:
-                    if children.status == BoardState.BLACK_WIN:
-                        current.status = BoardState.BLACK_WIN
-                        break
-                    children = children.next_sibling
+                if Tree.any_child_BW:
+                    current.status = BoardState.BLACK_WIN
             elif "B" in current:
-                children = current.child.child
-                if current == self.root:
-                    children = current.child
-                while children:
-                    if children.status == BoardState.WHITE_WIN:
-                        current.status = BoardState.WHITE_WIN
-                        break
-                    children = children.next_sibling
+                if Tree.any_child_WW:
+                    current.status = BoardState.WHITE_WIN
 
 
 class MCTS(Tree):

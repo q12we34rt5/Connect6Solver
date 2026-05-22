@@ -14,14 +14,18 @@ from Solver.solver_node import SolverNode, SolverNodeAllocator
 
 
 def dfs(node, dep):
-    print(f"we are children, and our dep:{dep}")
+    # print(f"we are children, and our dep:{dep}")
 
     while node:
         move_str = node_to_move_string(node)
         move_str2 = node_to_move_string(node.get_child(0))
-        avg_score = node.winrate / node.visit_count if node.visit_count > 0 else 0
+        node.get_child(0).status = node.status
+        node.get_child(0).visit_count = node.visit_count
+        node.get_child(0).winrate = node.winrate
+        node.get_child(0).id = node.id
         
-        print(f"Move: {move_str}{move_str2} | Visits: {node.visit_count:<5} | Score: {avg_score:>.2f} | Status: {node.status}")
+        # avg_score = node.winrate / node.visit_count if node.visit_count > 0 else 0
+        # print(f"Move: {move_str}{move_str2} | Visits: {node.visit_count:<5} | Score: {avg_score:>.2f} | Status: {node.status}")
         hehe = node.child.child
         if not hehe:
             node = node.next_sibling
@@ -29,7 +33,7 @@ def dfs(node, dep):
         dfs(hehe, dep + 1)
         node = node.next_sibling 
 
-    print("go up to parent")
+    # print("go up to parent")
 
 
 
@@ -52,7 +56,8 @@ def main():
     
     print(f"Initializing solver with job: {input_sgf}")
     
-    solver = Solver()
+    solver = Solver("/mnt/nfs/work/q12we34rt5/NCTU6/NCTU6")
+    # solver = Solver()
     solver.set_job(input_sgf)
     
     # Run simulations
@@ -64,6 +69,7 @@ def main():
         print("Error: Root is None!")
         return
 
+    dfs(root.get_child(0), 0)
     print("=" * 40)
     print(f"Root Status: {root.status}")
     print(f"Root Visit Count: {root.visit_count}")

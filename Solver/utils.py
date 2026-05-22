@@ -110,6 +110,10 @@ def node_to_job(node: sgf_tool.SGFNode) -> str:
 
 
 def parse_nctu6_output(output: str) -> typing.Tuple[str, SolverNode, typing.List[str]]:
+    result_index = output.find("AB_RESULT")
+    if result_index == -1:
+        raise ValueError("Invalid output format: AB_RESULT not found")
+    output = output[result_index:]
     result, remainder = output.split(" ", 1)
     sgf_string = remainder[:12]
     move_nodes = sgf_tool.SGFParser(
