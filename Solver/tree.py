@@ -25,9 +25,17 @@ class Tree:
             child = child.next_sibling
         return all_moves
 
+    def assign_created_id(self, node: SolverNode, id: int):
+        current = node
+        while current:
+            current.id = id
+            if current.child:
+                self.assign_created_id(current.child, id)
+            current = current.next_sibling
+
     def tree_expand(self, node: SolverNode, result: EvaluationResult, id: int):
         if result.moves:
-            result.moves.id = id
+            self.assign_created_id(result.moves, id)
             node.add_child(result.moves)
     
     def any_child_BW(current):

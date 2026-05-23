@@ -11,29 +11,18 @@ from Solver.utils import node_to_move_string, to_board_string
 import sgf_tool
 from Solver.solver_node import SolverNode, SolverNodeAllocator
 
+ def save_tree(simulation_id, root):
+      for node, _ in sgf_tool.utils.Algorithm.dfs_iterator(root):
+          winrate = node.winrate / node.visit_count if node.visit_count > 0 else 0
+          node["C"] = [
+              f"winrate = {winrate:.2f}\n"
+              f"visit_count = {node.visit_count}\n"
+              f"status = {node.status}\n"
+              f"id = {node.id}\n"
+          ]
 
-
-def dfs(node, dep):
-    # print(f"we are children, and our dep:{dep}")
-
-    while node:
-        move_str = node_to_move_string(node)
-        move_str2 = node_to_move_string(node.get_child(0))
-        node.get_child(0).status = node.status
-        node.get_child(0).visit_count = node.visit_count
-        node.get_child(0).winrate = node.winrate
-        node.get_child(0).id = node.id
-        
-        # avg_score = node.winrate / node.visit_count if node.visit_count > 0 else 0
-        # print(f"Move: {move_str}{move_str2} | Visits: {node.visit_count:<5} | Score: {avg_score:>.2f} | Status: {node.status}")
-        hehe = node.child.child
-        if not hehe:
-            node = node.next_sibling
-            continue
-        dfs(hehe, dep + 1)
-        node = node.next_sibling 
-
-    # print("go up to parent")
+      with open(output_file, "w") as f:
+          f.write(root.to_sgf())
 
 
 
